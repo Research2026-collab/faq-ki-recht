@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ Admin – KI & Urheberrecht</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f3;
+  --surface: #ffffff;
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #1a1a18;
+  --text-muted: #6b6b67;
+  --text-faint: #9a9a96;
+  --accent: #1a4f8a;
+  --accent-mid: #2e6fc4;
+  --green: #2E7D5A;
+  --green-light: #ebf5f0;
+  --orange: #c45c1a;
+  --orange-light: #fef3eb;
+  --radius: 10px;
+  --radius-sm: 7px;
+}
+body {
+  font-family: -apple-system, Helvetica, Arial, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; padding: 2rem 1rem 4rem;
+}
+.wrapper { max-width: 780px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.4rem; }
+.sub { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; }
+.controls {
+  display: flex; gap: 0.75rem; align-items: center;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.btn {
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  padding: 0.5rem 1.25rem; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border-strong);
+  background: var(--surface); color: var(--text);
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.75; }
+.btn:disabled { opacity: 0.35; cursor: default; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.live { font-size: 12px; color: var(--text-faint); }
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; }
+.frage-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.badge {
+  font-size: 11px; font-weight: 500; padding: 0.2rem 0.6rem;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.badge-offen { background: var(--orange-light); color: var(--orange); }
+.badge-beantwortet { background: var(--green-light); color: var(--green); }
+.antwort-box {
+  background: var(--bg); border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm); padding: 0.75rem;
+  font-size: 13px; color: var(--text-muted); line-height: 1.6;
+  margin-bottom: 0.75rem; min-height: 60px;
+}
+.antwort-box.generating { color: var(--accent-mid); }
+.quelle-box {
+  font-size: 11px; color: var(--text-faint);
+  margin-bottom: 0.75rem;
+}
+.btn-antworten {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 0.4rem 1rem; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--accent-mid);
+  background: #eef3fb; color: var(--accent);
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn-antworten:hover { opacity: 0.75; }
+.btn-antworten:disabled { opacity: 0.35; cursor: default; }
+.empty { text-align: center; color: var(--text-faint); padding: 3rem 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>FAQ Admin</h1>
+  <p class="sub">Offene Fragen mit Claude beantworten. Die Antworten erscheinen automatisch auf dem Whiteboard.</p>
+
+  <div class="controls">
+    <button class="btn btn-primary" onclick="alleGenerieren()" id="btnAlle">Alle offenen beantworten</button>
+    <button class="btn" onclick="laden()">Aktualisieren</button>
+    <span class="live" id="livetext"></span>
+  </div>
+
+  <div id="liste"></div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwFp1YTH6_iADsTjsAtMLpIkXh2xx59S8Ng63x3scpfHTe9Xdlxm9LjcQ-hVvqlTFZl/exec';
+const CLAUDE_URL = 'https://api.anthropic.com/v1/messages';
+
+const SYSTEM_PROMPT = `Du bist ein Experte für rechtliche Rahmenbedingungen beim Einsatz von KI-Werkzeugen im Bildungsbereich, speziell im Kontext von Integrations- und Berufssprachkursen in Deutschland.
+
+Beantworte Fragen ausschliesslich auf Basis dieser drei Quellen:
+1. BAMF-Empfehlungen zur Anwendung von KI-Werkzeugen im Gesamtprogramm Sprache (Stand: Februar 2026)
+2. BMJ FAQ: Künstliche Intelligenz und Urheberrecht (Bundesministerium der Justiz, 2024)
+3. EU AI Act – Verordnung (EU) 2024/1689 über Künstliche Intelligenz (in Kraft seit August 2024)
+
+Relevante Inhalte aus Quelle 1 (BAMF, Februar 2026):
+- KI-Werkzeuge mit geringem Risiko (z.B. ChatGPT, Claude) unterliegen Transparenz- und Kennzeichnungspflichten (Art. 50 ff KI-VO)
+- Geschützte Werke dürfen nicht in KI-Systeme eingegeben werden, auch nicht für Bildungszwecke (§ 16 UrhG, nicht von Bildungsschranken gedeckt)
+- KI-generierte Inhalte genießen keinen eigenen urheberrechtlichen Schutz (§ 2 Abs. 2 UrhG)
+- Für Bildungszwecke erlaubt: bis zu 15% eines Werkes, einzelne Bilder, kurze Artikel (§ 60a UrhG) – aber nicht beim Einspeisen in KI
+- Seit Februar 2025: Kursträger müssen KI-Kompetenz ihrer Mitarbeitenden sicherstellen (Art. 4 KI-VO)
+- Personenbezogene Daten dürfen nur mit Rechtsgrundlage verarbeitet werden (Art. 6 DSGVO)
+- Datenschutzfreundliche Alternativen bevorzugen: anonyme Klassenzugänge, keine privaten E-Mail-Adressen
+- Hochrisiko-KI: KI-Systeme die über Bildungschancen entscheiden, Lernergebnisse bewerten oder Prüfungen überwachen (Art. 6 Anhang III KI-VO)
+- Deep-Fakes müssen als KI-generiert gekennzeichnet werden (Art. 50 Abs. 4 KI-VO)
+
+Formatierungsregeln:
+- Antworte auf Deutsch, klar und praxisnah
+- Maximal 4-5 Sätze
+- Nenne am Ende immer die konkrete Quelle (z.B. "Quelle: BAMF-Empfehlungen 2026, Abschnitt 4.4.2" oder "Quelle: EU AI Act, Art. 50")
+- Wenn die Frage nicht durch die Quellen abgedeckt ist, sage das explizit
+- Gib keine allgemeine Rechtsberatung, keine Meinungen`;
+
+let eintraege = [];
+
+async function laden() {
+  try {
+    const res = await fetch(SHEET_URL + '?t=' + Date.now());
+    eintraege = await res.json();
+    rendern();
+    document.getElementById('livetext').textContent = 'Aktualisiert: ' + new Date().toLocaleTimeString('de-DE');
+  } catch(e) {
+    document.getElementById('livetext').textContent = 'Ladefehler';
+  }
+}
+
+function rendern() {
+  const liste = document.getElementById('liste');
+  if (!eintraege.length) {
+    liste.innerHTML = '<p class="empty">Noch keine Fragen eingegangen.</p>';
+    return;
+  }
+  liste.innerHTML = eintraege.map((e, i) => `
+    <div class="card" id="card-${i}">
+      <div class="card-top">
+        <p class="frage-text">${e.frage}</p>
+        <span class="badge ${e.status === 'beantwortet' ? 'badge-beantwortet' : 'badge-offen'}">
+          ${e.status === 'beantwortet' ? 'Beantwortet' : 'Offen'}
+        </span>
+      </div>
+      <div class="antwort-box" id="antwort-${i}">
+        ${e.antwort || '<span style="color:var(--text-faint)">Noch keine Antwort</span>'}
+      </div>
+      ${e.quelle ? `<p class="quelle-box">${e.quelle}</p>` : ''}
+      ${e.status !== 'beantwortet' ? `<button class="btn-antworten" id="btn-${i}" onclick="einzelGenerieren(${i})">Mit Claude beantworten</button>` : ''}
+    </div>
+  `).join('');
+}
+
+async function generateAntwort(frage) {
+  const response = await fetch(CLAUDE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: frage }]
+    })
+  });
+  const data = await response.json();
+  return data.content?.[0]?.text || 'Keine Antwort erhalten.';
+}
+
+async function schreibeAntwort(index, antwort) {
+  const eintrag = eintraege[index];
+  const quelle = extractQuelle(antwort);
+  const antwortText = antwort.replace(/Quelle:.*$/s, '').trim();
+
+  await fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      updateIndex: index + 2,
+      antwort: antwortText,
+      quelle: quelle,
+      status: 'beantwortet'
+    })
+  });
+}
+
+function extractQuelle(text) {
+  const match = text.match(/Quelle:(.+?)(?:\n|$)/i);
+  return match ? match[1].trim() : '';
+}
+
+async function einzelGenerieren(i) {
+  const btn = document.getElementById('btn-' + i);
+  const box = document.getElementById('antwort-' + i);
+  if (btn) btn.disabled = true;
+  box.className = 'antwort-box generating';
+  box.textContent = 'Claude generiert Antwort…';
+  try {
+    const antwort = await generateAntwort(eintraege[i].frage);
+    const quelle = extractQuelle(antwort);
+    const antwortText = antwort.replace(/Quelle:.*$/s, '').trim();
+    box.className = 'antwort-box';
+    box.textContent = antwortText;
+    if (quelle) {
+      const quel = document.createElement('p');
+      quel.className = 'quelle-box';
+      quel.textContent = 'Quelle: ' + quelle;
+      box.parentNode.insertBefore(quel, box.nextSibling);
+    }
+    eintraege[i].antwort = antwortText;
+    eintraege[i].status = 'beantwortet';
+    await schreibeAntwort(i, antwort);
+  } catch(e) {
+    box.className = 'antwort-box';
+    box.textContent = 'Fehler: ' + e.message;
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function alleGenerieren() {
+  const btn = document.getElementById('btnAlle');
+  btn.disabled = true;
+  btn.textContent = 'Wird generiert…';
+  const offene = eintraege.map((e, i) => ({e, i})).filter(({e}) => e.status !== 'beantwortet');
+  for (const {i} of offene) {
+    await einzelGenerieren(i);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Alle offenen beantworten';
+}
+
+laden();
+setInterval(laden, 15000);
+</script>
+</body>
+</html>
