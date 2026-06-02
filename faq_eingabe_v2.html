@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI & Urheberrecht – Frage stellen</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #1a1a18;
+  --text-muted: #6b6b67;
+  --text-faint: #9a9a96;
+  --accent: #1a4f8a;
+  --accent-mid: #2e6fc4;
+  --accent-light: #eef3fb;
+  --green: #2E7D5A;
+  --green-light: #ebf5f0;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+body {
+  font-family: -apple-system, Helvetica, Arial, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex;
+  align-items: flex-start; justify-content: center;
+  padding: 2.5rem 1rem 4rem;
+}
+.wrapper { width: 100%; max-width: 600px; }
+.label { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-mid); margin-bottom: 0.5rem; }
+h1 { font-size: 22px; font-weight: 500; line-height: 1.35; margin-bottom: 0.6rem; }
+.intro { font-size: 15px; color: var(--text-muted); line-height: 1.65; margin-bottom: 2rem; }
+.card { background: var(--surface); border: 0.5px solid var(--border-strong); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 1rem; }
+.card-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 0.6rem; }
+textarea {
+  width: 100%; min-height: 110px; padding: 0.75rem;
+  font-family: inherit; font-size: 15px; line-height: 1.6;
+  color: var(--text); background: var(--bg);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm); resize: vertical; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+textarea::placeholder { color: var(--text-faint); }
+textarea:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 3px rgba(46,111,196,0.12); }
+.beispiele { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.beispiel {
+  font-size: 12px; color: var(--accent-mid); background: var(--accent-light);
+  border: 0.5px solid rgba(46,111,196,0.25); border-radius: 20px;
+  padding: 0.3rem 0.75rem; cursor: pointer; transition: background 0.15s;
+}
+.beispiel:hover { background: #d9e8f8; }
+.submit-row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+.btn {
+  font-family: inherit; font-size: 15px; font-weight: 500;
+  padding: 0.65rem 1.75rem; border-radius: var(--radius-sm);
+  border: none; background: var(--accent); color: #fff;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.status-text { font-size: 13px; color: var(--text-faint); }
+.warte-card {
+  display: none; background: var(--accent-light);
+  border: 0.5px solid rgba(46,111,196,0.25);
+  border-radius: var(--radius); padding: 1.5rem; margin-top: 1rem;
+  text-align: center;
+}
+.warte-card.visible { display: block; }
+.warte-text { font-size: 15px; color: var(--accent); margin-bottom: 0.5rem; }
+.warte-sub { font-size: 12px; color: var(--text-faint); }
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid rgba(46,111,196,0.3);
+  border-top-color: var(--accent-mid);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 0.75rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.antwort-card {
+  display: none; background: var(--green-light);
+  border: 0.5px solid rgba(46,125,90,0.30);
+  border-radius: var(--radius); padding: 1.5rem; margin-top: 1rem;
+}
+.antwort-card.visible { display: block; }
+.antwort-header { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); margin-bottom: 0.75rem; }
+.antwort-text { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 0.75rem; }
+.antwort-quelle { font-size: 12px; color: var(--text-muted); padding-top: 0.6rem; border-top: 0.5px solid rgba(46,125,90,0.20); }
+.neu-btn {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 0.4rem 1rem; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--accent-mid); background: var(--accent-light);
+  color: var(--accent); cursor: pointer; margin-top: 1rem; transition: opacity 0.15s;
+}
+.neu-btn:hover { opacity: 0.75; }
+.quellen-bar {
+  margin-top: 2rem; padding: 1rem 1.25rem; background: var(--accent-light);
+  border: 0.5px solid rgba(46,111,196,0.20); border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text-muted); line-height: 1.6;
+}
+.quellen-bar strong { color: var(--text); display: block; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <p class="label">KI-Rahmenbedingungen im Sprachunterricht</p>
+  <h1>KI & Recht – Ihre Frage</h1>
+  <p class="intro">Stellen Sie eine Frage zu Urheberrecht, Datenschutz oder dem EU AI Act. Die Antwort erscheint sofort hier und auf dem gemeinsamen Whiteboard.</p>
+
+  <div class="card" id="frageCard">
+    <p class="card-label">Ihre Frage</p>
+    <textarea id="frage" placeholder="z.B. Darf ich ein urheberrechtlich geschütztes Lehrbuch in ChatGPT eingeben?"></textarea>
+    <div class="beispiele">
+      <span class="beispiel" onclick="setFrage('Darf ich Unterrichtsmaterial mit KI erstellen?')">Unterrichtsmaterial mit KI?</span>
+      <span class="beispiel" onclick="setFrage('Was gilt für personenbezogene Daten von Teilnehmenden beim KI-Einsatz?')">Personenbezogene Daten?</span>
+      <span class="beispiel" onclick="setFrage('Sind KI-generierte Inhalte urheberrechtlich geschützt?')">KI-Inhalte & Urheberrecht?</span>
+      <span class="beispiel" onclick="setFrage('Was bedeutet KI-Kompetenzpflicht für Kursträger?')">KI-Kompetenzpflicht?</span>
+    </div>
+  </div>
+
+  <div class="submit-row">
+    <button class="btn" id="btn" onclick="absenden()">Frage absenden</button>
+    <p class="status-text" id="status"></p>
+  </div>
+
+  <div class="warte-card" id="warteCard">
+    <div class="spinner"></div>
+    <p class="warte-text">Antwort wird generiert…</p>
+    <p class="warte-sub">Das dauert ca. 10–15 Sekunden</p>
+  </div>
+
+  <div class="antwort-card" id="antwortCard">
+    <p class="antwort-header">Antwort</p>
+    <p class="antwort-text" id="antwortText"></p>
+    <p class="antwort-quelle" id="antwortQuelle"></p>
+    <p style="font-size:11px;color:var(--text-faint);margin-top:0.5rem;">Diese Antwort basiert auf den genannten Quellen und ersetzt keine Rechtsberatung.</p>
+    <button class="neu-btn" onclick="neueFrage()">Neue Frage stellen</button>
+  </div>
+
+  <div class="quellen-bar">
+    <strong>Quellengrundlage</strong>
+    BAMF-Empfehlungen zur Anwendung von KI-Werkzeugen im Gesamtprogramm Sprache (Februar 2026) · BMJ FAQ: KI und Urheberrecht (2024) · EU AI Act, Verordnung (EU) 2024/1689
+  </div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzhnEJBQl24p2OeWdD6CUFH4WtqSC4BXTDZSXdyQ7hMh-Wmiq2u-rTnkCmXo1mcyIqF/exec';
+
+let meineFrageText = '';
+let pollingInterval = null;
+
+function setFrage(text) {
+  document.getElementById('frage').value = text;
+  document.getElementById('frage').focus();
+}
+
+function neueFrage() {
+  document.getElementById('frage').value = '';
+  document.getElementById('antwortCard').classList.remove('visible');
+  document.getElementById('warteCard').classList.remove('visible');
+  document.getElementById('btn').disabled = false;
+  document.getElementById('btn').textContent = 'Frage absenden';
+  document.getElementById('status').textContent = '';
+  document.getElementById('frageCard').style.display = 'block';
+  if (pollingInterval) clearInterval(pollingInterval);
+}
+
+async function absenden() {
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+  const frage = document.getElementById('frage').value.trim();
+  if (!frage) {
+    status.textContent = 'Bitte eine Frage eingeben.';
+    return;
+  }
+  meineFrageText = frage;
+  btn.disabled = true;
+  btn.textContent = 'Wird gesendet…';
+  status.textContent = '';
+
+  // Senden mit no-cors (kein Rückkanal, aber Daten kommen an)
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frage })
+    });
+  } catch(e) { /* no-cors wirft keinen Fehler */ }
+
+  // Warte-Anzeige
+  document.getElementById('frageCard').style.display = 'none';
+  document.getElementById('warteCard').classList.add('visible');
+  btn.textContent = 'Gesendet';
+
+  // Polling: Sheet alle 5 Sekunden abfragen bis Antwort da
+  let versuche = 0;
+  pollingInterval = setInterval(async () => {
+    versuche++;
+    if (versuche > 24) { // max 2 Minuten
+      clearInterval(pollingInterval);
+      document.getElementById('warteCard').classList.remove('visible');
+      status.textContent = 'Zeitüberschreitung. Bitte erneut versuchen.';
+      btn.disabled = false;
+      btn.textContent = 'Frage absenden';
+      document.getElementById('frageCard').style.display = 'block';
+      return;
+    }
+    try {
+      const res = await fetch(SHEET_URL + '?t=' + Date.now());
+      const daten = await res.json();
+      // Neueste Einträge zuerst durchsuchen
+      const treffer = [...daten].reverse().find(e =>
+        e.frage === meineFrageText && e.status === 'beantwortet' && e.antwort
+      );
+      if (treffer) {
+        clearInterval(pollingInterval);
+        document.getElementById('warteCard').classList.remove('visible');
+        document.getElementById('antwortText').textContent = treffer.antwort;
+        document.getElementById('antwortQuelle').textContent = treffer.quelle ? 'Quelle: ' + treffer.quelle : '';
+        document.getElementById('antwortCard').classList.add('visible');
+      }
+    } catch(e) { /* weiter versuchen */ }
+  }, 5000);
+}
+</script>
+</body>
+</html>
