@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ Whiteboard – KI & Urheberrecht</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1923;
+  --surface: #172030;
+  --surface2: #1e2d40;
+  --border: rgba(255,255,255,0.08);
+  --text: #e8e8e4;
+  --text-muted: #8a9ab0;
+  --text-faint: #4a5a6a;
+  --accent: #4a90d9;
+  --accent-light: #1a3a5c;
+  --green: #4caf82;
+  --green-light: #1a3028;
+  --orange: #e0913a;
+  --orange-light: #2a1e0a;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+body {
+  font-family: -apple-system, Helvetica, Arial, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; padding: 1.5rem;
+}
+.top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 1.5rem;
+  flex-wrap: wrap; gap: 0.75rem;
+}
+.top-left h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+.top-left p { font-size: 12px; color: var(--text-muted); }
+.live-dot { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.quellen-bar {
+  background: var(--accent-light);
+  border: 0.5px solid rgba(74,144,217,0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1rem;
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 1.5rem; line-height: 1.5;
+}
+.quellen-bar strong { color: var(--accent); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  animation: fadein 0.4s ease;
+}
+@keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.card-offen { border-left: 3px solid var(--orange); }
+.card-beantwortet { border-left: 3px solid var(--green); }
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  padding: 0.15rem 0.5rem; border-radius: 20px;
+  letter-spacing: 0.05em; margin-bottom: 0.6rem;
+}
+.badge-offen { background: var(--orange-light); color: var(--orange); }
+.badge-beantwortet { background: var(--green-light); color: var(--green); }
+.frage {
+  font-size: 14px; font-weight: 600; line-height: 1.5;
+  color: var(--text); margin-bottom: 0.75rem;
+}
+.antwort {
+  font-size: 13px; line-height: 1.65; color: var(--text-muted);
+  padding-top: 0.75rem;
+  border-top: 0.5px solid var(--border);
+}
+.quelle {
+  font-size: 11px; color: var(--text-faint);
+  margin-top: 0.6rem; padding-top: 0.5rem;
+  border-top: 0.5px solid var(--border);
+}
+.warten { font-size: 12px; color: var(--orange); padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
+.empty { text-align: center; color: var(--text-faint); padding: 4rem 0; font-size: 14px; grid-column: 1/-1; }
+.rechtlich {
+  margin-top: 2rem;
+  font-size: 11px; color: var(--text-faint);
+  text-align: center; line-height: 1.6;
+}
+.frage-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 13px; color: var(--accent);
+  background: var(--accent-light);
+  border: 0.5px solid rgba(74,144,217,0.30);
+  border-radius: 20px; padding: 0.35rem 0.9rem;
+  text-decoration: none; transition: opacity 0.15s;
+  margin-bottom: 1.5rem;
+}
+.frage-link:hover { opacity: 0.8; }
+.suche-wrap { margin-bottom: 1.5rem; }
+.suche {
+  width: 100%; max-width: 400px; padding: 0.55rem 0.9rem;
+  font-family: inherit; font-size: 13px; color: var(--text);
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.suche::placeholder { color: var(--text-faint); }
+.suche:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.18); }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="top-left">
+    <h1>KI & Recht – FAQ Whiteboard</h1>
+    <p>Fragen und Antworten zu Urheberrecht, Datenschutz und EU AI Act im Unterrichtskontext</p>
+  </div>
+  <div class="live-dot">
+    <div class="dot"></div>
+    <span id="livetext">Wird geladen…</span>
+  </div>
+</div>
+
+<div class="quellen-bar">
+  <strong>Quellengrundlage:</strong> BAMF-Empfehlungen KI-Werkzeuge im Gesamtprogramm Sprache (Februar 2026) · BMJ FAQ: KI und Urheberrecht (2024) · EU AI Act, Verordnung (EU) 2024/1689 · Die Antworten ersetzen keine Rechtsberatung.
+</div>
+
+<a class="frage-link" href="faq_eingabe_v2.html">Sie wollen eine weitere Frage stellen? →</a>
+
+<div class="suche-wrap">
+  <input type="text" class="suche" id="suche" placeholder="Fragen, Antworten oder Quellen durchsuchen …" oninput="anwendenFilter()">
+</div>
+
+<div class="grid" id="grid"></div>
+
+<p class="rechtlich">Alle Antworten basieren auf den oben genannten Quellen und wurden mit KI-Unterstützung generiert. Sie ersetzen keine individuelle Rechtsberatung.</p>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyuTtgMkAuGqEQComVcg8scKINo_UCO5MxStJ7k_3WgHHT4QuSYjZDfzp9Jy87JnlFL/exec';
+
+// Speichert den zuletzt angezeigten Datenstand als Vergleichsbasis.
+let letzterStand = null;
+
+// Hält den vollständigen, zuletzt geladenen Datensatz für die Suche bereit.
+let alleDaten = [];
+
+async function laden() {
+  try {
+    const res = await fetch(SHEET_URL + '?t=' + Date.now());
+    const daten = await res.json();
+    const aktuellerStand = JSON.stringify(daten);
+
+    // Nur neu rendern, wenn sich die Daten tatsächlich geändert haben.
+    if (aktuellerStand !== letzterStand) {
+      letzterStand = aktuellerStand;
+      alleDaten = daten;
+      anwendenFilter();
+    }
+
+    const now = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    document.getElementById('livetext').textContent = 'Zuletzt: ' + now;
+  } catch(e) {
+    document.getElementById('livetext').textContent = 'Verbindungsfehler';
+  }
+}
+
+// Filtert den vorhandenen Datensatz anhand des Suchbegriffs und rendert das Ergebnis.
+function anwendenFilter() {
+  const begriff = document.getElementById('suche').value.trim().toLowerCase();
+  if (!begriff) {
+    rendern(alleDaten, false);
+    return;
+  }
+  const treffer = alleDaten.filter(e => {
+    const text = [e.frage, e.antwort, e.quelle].filter(Boolean).join(' ').toLowerCase();
+    return text.includes(begriff);
+  });
+  rendern(treffer, true);
+}
+
+function rendern(daten, istSuche) {
+  const grid = document.getElementById('grid');
+  if (!daten.length) {
+    grid.innerHTML = istSuche
+      ? '<p class="empty">Keine Treffer für diesen Suchbegriff.</p>'
+      : '<p class="empty">Noch keine Fragen eingegangen. Teilnehmende können jetzt Fragen stellen.</p>';
+    return;
+  }
+  grid.innerHTML = [...daten].reverse().map(e => `
+    <div class="card ${e.status === 'beantwortet' ? 'card-beantwortet' : 'card-offen'}">
+      <span class="badge ${e.status === 'beantwortet' ? 'badge-beantwortet' : 'badge-offen'}">
+        ${e.status === 'beantwortet' ? 'Beantwortet' : 'Offen'}
+      </span>
+      <p class="frage">${e.frage}</p>
+      ${e.antwort
+        ? `<p class="antwort">${e.antwort}</p>${e.quelle ? `<p class="quelle">Quelle: ${e.quelle}</p>` : ''}`
+        : `<p class="warten">Antwort wird vorbereitet…</p>`
+      }
+    </div>
+  `).join('');
+}
+
+laden();
+setInterval(laden, 10000);
+</script>
+</body>
+</html>
