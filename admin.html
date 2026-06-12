@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einfach.Machen &ndash; Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a1815;
+    --bg-elevated:#221f1a;
+    --surface:#2b2720;
+    --border:rgba(241,236,227,0.10);
+    --text:#f1ece3;
+    --text-muted:#a89f91;
+    --accent:#e0a458;
+    --tag:#8fb39a;
+    --c3:#c97b63;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg);color:var(--text);font-family:'Atkinson Hyperlegible', sans-serif;
+    line-height:1.6;min-height:100vh;
+  }
+  a{color:var(--accent);}
+  .wrap{max-width:640px;margin:0 auto;padding:32px 24px 80px;}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+  .lamp circle{fill:var(--accent);opacity:0.9;}
+  .lamp path{stroke:var(--accent);stroke-width:2;fill:none;opacity:0.5;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin:0;}
+  .subtitle{color:var(--text-muted);font-size:14px;margin:2px 0 28px;}
+  .panel{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);
+    padding:8px 22px 22px;
+  }
+  .hint{font-size:13px;color:var(--text-muted);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-grid .full{grid-column:1 / -1;}
+  @media (max-width:520px){.form-grid{grid-template-columns:1fr;}}
+  label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted);}
+  label input, label select, label textarea{
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;
+  }
+  label textarea{resize:vertical;min-height:64px;}
+  button{
+    font-family:inherit;font-size:14px;border-radius:999px;border:1px solid var(--accent);
+    background:var(--accent);color:#241a0c;font-weight:700;padding:10px 18px;cursor:pointer;
+  }
+  button:hover{filter:brightness(1.07);}
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;
+  }
+  .form-msg{font-size:13px;margin-top:8px;min-height:18px;display:block;}
+  .form-msg.ok{color:var(--tag);}
+  .form-msg.err{color:var(--c3);}
+  .recent{margin-top:32px;font-size:13px;color:var(--text-muted);}
+  footer{margin-top:48px;color:var(--text-muted);font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg class="lamp" width="30" height="30" viewBox="0 0 34 34" aria-hidden="true">
+      <circle cx="17" cy="14" r="6"></circle>
+      <path d="M17 20 L17 28 M11 28 L23 28"></path>
+    </svg>
+    <h1>Einfach.Machen &ndash; Admin</h1>
+  </div>
+  <p class="subtitle">Eintr&auml;ge mit g&uuml;ltigem Zugangscode erscheinen direkt und ohne redaktionelle Pr&uuml;fung im Wissensraum.</p>
+
+  <div class="panel">
+    <p class="hint">Alle Felder bis auf Zielgruppe 2 und Schlagworte sind erforderlich.</p>
+    <form class="form-grid" id="form-admin">
+      <label class="full">Zugangscode
+        <input name="adminToken" type="password" required autocomplete="off">
+      </label>
+      <label class="full">Titel
+        <input name="titel" required>
+      </label>
+      <label class="full">Kurzbeschreibung
+        <textarea name="kurzbeschreibung" required></textarea>
+      </label>
+      <label class="full">URL / Quelle
+        <input name="url" type="url" required>
+      </label>
+      <label>Hauptbereich
+        <select name="hauptbereich" data-options="Hauptbereich" required></select>
+      </label>
+      <label>Thema
+        <select name="thema" data-options="Thema" required></select>
+      </label>
+      <label>Zielgruppe 1
+        <select name="zielgruppe1" data-options="Zielgruppe" required></select>
+      </label>
+      <label>Zielgruppe 2 (optional)
+        <select name="zielgruppe2" data-options="Zielgruppe" data-empty="&ndash;"></select>
+      </label>
+      <label>Materialformat
+        <select name="materialformat" data-options="Materialformat" required></select>
+      </label>
+      <label>Sprachebene
+        <select name="sprachebene" data-options="Sprachebene" required></select>
+      </label>
+      <label>Zugangs- und Lizenzmodell
+        <select name="lizenzmodell" data-options="Zugangs- und Lizenzmodell" required></select>
+      </label>
+      <label class="full">Schlagworte (bis zu 5, mit Komma getrennt)
+        <input name="tags" list="tag-list" placeholder="z. B. KI im Alltag, Verst&auml;ndlich schreiben">
+      </label>
+      <datalist id="tag-list"></datalist>
+      <div class="full">
+        <button type="submit">Direkt ver&ouml;ffentlichen</button>
+        <span class="form-msg" id="msg-admin"></span>
+      </div>
+    </form>
+  </div>
+
+  <p class="recent" id="recent"></p>
+
+  <footer><a href="index.html">Zur&uuml;ck zum Wissensraum</a></footer>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZqOr5t2x9tMXx0TNRRGydL9Q8tUiOacmgry-ZtB9Xmwi05e526HSIPxI7hJRlTl2vyg/exec";
+
+function populateSelect(select, optionen, optionKey){
+  select.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = select.required ? "Bitte ausw\u00e4hlen" : (select.dataset.empty || "\u2013");
+  select.appendChild(placeholder);
+  const values = [...(optionen[optionKey] || [])].sort((a, b) => a.localeCompare(b, "de"));
+  values.forEach(val => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = val;
+    select.appendChild(opt);
+  });
+}
+
+async function init(){
+  const msgEl = document.getElementById("msg-admin");
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + "?action=optionen");
+    const optionen = await res.json();
+    document.querySelectorAll("select[data-options]").forEach(select => {
+      populateSelect(select, optionen, select.dataset.options);
+    });
+    const tagList = document.getElementById("tag-list");
+    const tags = [...(optionen["Tags"] || [])].sort((a, b) => a.localeCompare(b, "de"));
+    tags.forEach(tag => {
+      const opt = document.createElement("option");
+      opt.value = tag;
+      tagList.appendChild(opt);
+    });
+  } catch (err) {
+    msgEl.textContent = "Optionslisten konnten nicht geladen werden.";
+    msgEl.className = "form-msg err";
+  }
+}
+
+document.getElementById("form-admin").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+  const msgEl = document.getElementById("msg-admin");
+  const data = new FormData(form);
+  const payload = {};
+  data.forEach((value, key) => { payload[key] = value; });
+  payload.tags = (payload.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 5);
+
+  msgEl.textContent = "Wird gesendet \u2026";
+  msgEl.className = "form-msg";
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.status === "Veröffentlicht") {
+      msgEl.textContent = "Ver\u00f6ffentlicht als " + result.id + ". Der Wissensraum zeigt den Eintrag beim n\u00e4chsten Aufruf oder Klick auf Aktualisieren.";
+      msgEl.className = "form-msg ok";
+      form.reset();
+      init();
+    } else {
+      msgEl.textContent = "Zugangscode ung\u00fcltig. Der Eintrag wurde stattdessen zur redaktionellen Pr\u00fcfung gespeichert (" + result.id + ").";
+      msgEl.className = "form-msg err";
+    }
+  } catch (err) {
+    msgEl.textContent = "Senden fehlgeschlagen. Bitte sp\u00e4ter erneut versuchen.";
+    msgEl.className = "form-msg err";
+  }
+});
+
+init();
+</script>
+</body>
+</html>
